@@ -73,7 +73,8 @@ the Humo and Uzcard adapters:
 | `@Configuration` | `config` |
 | `@ConfigurationProperties` | `property` |
 | a `*Request`, `*Response` or `*Params` DTO | `model`, data only: no controller, service, client, config, property, repository or mapper |
-| `*ExceptionStatus` | `constant` |
+| an enum (a top-level one; `*ExceptionStatus` is one) | `enums`, which holds enums only |
+| `ConstantUtils`, `*Constants` | `constant` |
 
 And it maintains strict layer boundaries:
 

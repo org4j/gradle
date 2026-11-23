@@ -564,6 +564,44 @@ class ArchitectureTest {
   }
 
   @Test
+  void anEnumOutsideEnumsFailsTheBuild() throws IOException {
+    write(
+        "src/main/java/demo/utils/DemoStatus.java",
+        "package demo.utils;\n\npublic enum DemoStatus { ACTIVE, CLOSED }\n");
+
+    var output = runner().buildAndFail().getOutput();
+
+    assertTrue(output.contains("an enum lives in enums, apart from the constants"), output);
+    assertTrue(output.contains("demo.utils.DemoStatus"), output);
+  }
+
+  @Test
+  void aClassInEnumsFailsTheBuild() throws IOException {
+    write(
+        "src/main/java/demo/enums/package-info.java",
+        "@org.jspecify.annotations.NullMarked\npackage demo.enums;\n");
+    write(
+        "src/main/java/demo/enums/DemoStatuses.java",
+        "package demo.enums;\n\npublic record DemoStatuses(String active) {}\n");
+
+    var output = runner().buildAndFail().getOutput();
+
+    assertTrue(output.contains("enums holds enums only"), output);
+    assertTrue(output.contains("demo.enums.DemoStatuses"), output);
+  }
+
+  @Test
+  void anErrorCodeThatIsNoEnumFailsTheBuild() throws IOException {
+    write(
+        "src/main/java/demo/utils/DemoExceptionStatus.java",
+        "package demo.utils;\n\npublic record DemoExceptionStatus(String code) {}\n");
+
+    var output = runner().buildAndFail().getOutput();
+
+    assertTrue(output.contains("error codes are an enum"), output);
+  }
+
+  @Test
   void layersAndConstantsKeptPass() throws IOException {
     write(
         "src/main/java/demo/service/DemoService.java",
@@ -603,6 +641,26 @@ class ArchitectureTest {
           public String health() {
             return service.health();
           }
+        }
+        """);
+
+    write(
+        "src/main/java/demo/enums/package-info.java",
+        "@org.jspecify.annotations.NullMarked\npackage demo.enums;\n");
+    write(
+        "src/main/java/demo/enums/DemoExceptionStatus.java",
+        """
+        package demo.enums;
+
+        public enum DemoExceptionStatus {
+          DOWN {
+            @Override
+            public int status() {
+              return 503;
+            }
+          };
+
+          public abstract int status();
         }
         """);
 
